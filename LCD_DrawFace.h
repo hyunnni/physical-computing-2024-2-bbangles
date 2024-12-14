@@ -161,7 +161,7 @@ void drawDrankVolume(float drankVolume_ml) {
     int drankVolumeCase = (int)(drankVolume_ml / 500); // Calculate number of drops based on 500 ml intervals
 
     // Debug print for drank volume case
-    Serial.println(drankVolumeCase);
+    // Serial.println(drankVolumeCase);
 
     // Draw water drops based on drankVolumeCase
     switch (drankVolumeCase) {
@@ -197,8 +197,8 @@ void drawDrankVolume(float drankVolume_ml) {
     char volumeString[10]; // Buffer to store the formatted string
     dtostrf(drankVolume_ml / 1000.0, 4, 1, volumeString); // Convert float to string
     strcat(volumeString, "L");
-    Serial.print("Volume String: ");
-    Serial.println(volumeString);
+    // Serial.print("Volume String: ");
+    // Serial.println(volumeString);
 
     // Draw the drank volume text below the drops
     Paint_DrawString_EN(70, 159, volumeString, &Font24, WHITE, GRAYBLUE);
