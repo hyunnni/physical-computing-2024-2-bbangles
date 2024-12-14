@@ -36,11 +36,11 @@ function:
 static void LCD_Reset(void)
 {
   DEV_Digital_Write(DEV_CS_PIN,0);
-  DEV_Delay_ms(100);
+  // DEV_Delay_ms(100);
   DEV_Digital_Write(DEV_RST_PIN,0);
-  DEV_Delay_ms(100);
+  // DEV_Delay_ms(100);
   DEV_Digital_Write(DEV_RST_PIN,1);
-  DEV_Delay_ms(100);
+  // DEV_Delay_ms(100);
 }
 
 /*******************************************************************************
@@ -327,9 +327,9 @@ void LCD_Init(void)
 	LCD_WriteReg(0x21);
 
 	LCD_WriteReg(0x11);
-	DEV_Delay_ms(120);
+	// DEV_Delay_ms(120);
 	LCD_WriteReg(0x29);
-	DEV_Delay_ms(20);
+	// DEV_Delay_ms(20);
   /*************************/
 } 
 

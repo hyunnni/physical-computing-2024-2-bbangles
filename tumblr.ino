@@ -20,6 +20,7 @@ unsigned long startMillis;      // Arduino startup time in millis()
 unsigned long currentMillis;    // Current millis()
 unsigned long lastUpdateMillis; // Last update time in millis()
 unsigned long lastDrinkMillis;
+unsigned long lastScreenSwitchMillis = 0; // To track the last screen switch time
 
 unsigned long elapsedTimeInSeconds;
 unsigned long totalSeconds;
@@ -33,6 +34,8 @@ unsigned long lastDrinkHours;
 
 int initialHours, initialMinutes, initialSeconds; // Compile time variables
 int currentHours, currentMinutes, currentSeconds; // Current time variables
+
+int currentScreen = 0; // 0 for elapsedState screen, 1 for drankVolume screen
 
 // Water level and volume variables
 long duration;
@@ -48,8 +51,8 @@ float drankAmount = 0.0;
 bool firstMeasurement = true;
 
 // State management
-int state = 1;
-int previousState = 0;
+int elapsedState = 1;
+int prevElapsedState = 0;
 
 // Function to calculate water height and volume
 void calculateWaterVolume() {
@@ -90,6 +93,7 @@ void updateDrinkingStats() {
             drankVolume_ml += drankAmount;
             lastDrinkMillis = millis(); // Update lastDrinkTime only for drinking events
             previousVolume_ml = currentVolume_ml; // Update previous volume for further comparisons
+            // drawDrankVolume(drankVolume_ml);
             Serial.println("Drinking event detected. Updating lastDrinkTime.");
         } else {
             // Serial.println("No significant drinking event. lastDrinkTime unchanged.");
@@ -116,20 +120,21 @@ void updateState() {
     unsigned long elapsedSinceLastDrink = (currentMillis - lastDrinkMillis) / 1000; // Seconds since last drink
 
     if (elapsedSinceLastDrink >= (8 * SECONDS_IN_A_MINUTE)) {
-        state = 4;
+        elapsedState = 4;
     } else if (elapsedSinceLastDrink >= (4 * SECONDS_IN_A_MINUTE)) {
-        state = 3;
+        elapsedState = 3;
     } else if (elapsedSinceLastDrink >= (2 * SECONDS_IN_A_MINUTE)) {
-        state = 2;
+        elapsedState = 2;
     } else {
-        state = 1;
+        elapsedState = 1;
     }
 
-    if (state != previousState) {
-        LCD_DrawFace(state);
-        previousState = state;
+    if (elapsedState != prevElapsedState) {
+        // LCD_DrawFace(elapsedState);
+        prevElapsedState = elapsedState;
     }
 }
+
 
 // Function to print debug information
 void printDebugInfo() {
@@ -224,4 +229,22 @@ void loop() {
         // Print debug information
         printDebugInfo();
     }
+
+    // Check if it's time to switch screens (every 30 seconds)
+    if (currentMillis - lastScreenSwitchMillis >= 30000) {
+        lastScreenSwitchMillis = currentMillis; // Update last screen switch time
+
+        if (currentScreen == 0) {
+            // Switch to drank volume screen
+            float sample_drankVolume_ml = 2000.0;
+            // drawDrankVolume(sample_drankVolume_ml);
+            drawDrankVolume(waterVolume_ml);
+            currentScreen = 1; // Update current screen state
+        } else {
+            // Switch to elapsedState face screen
+            LCD_DrawFace(elapsedState);
+            currentScreen = 0; // Update current screen state
+        }
+    }
 }
+

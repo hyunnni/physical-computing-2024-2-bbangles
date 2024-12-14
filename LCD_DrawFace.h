@@ -1,6 +1,8 @@
 #include <SPI.h>
+#include <stdio.h>
 #include "LCD_Driver.h"
 #include "GUI_Paint.h"
+
 
 #define PTRED         0xC064
 #define PTBLUE        0x255B
@@ -118,8 +120,8 @@ void draw_GreenFace(){
 
 }
 
-void LCD_DrawFace(int state){
-  switch (state){
+void LCD_DrawFace(int elapsedState){
+  switch (elapsedState){
     case 1:
       draw_GreenFace();
       break;
@@ -134,3 +136,73 @@ void LCD_DrawFace(int state){
       break;
   }
 }
+
+void drawWaterDrop(int centerX, int centerY, int triangleHeight, int circleRadius) {
+  // 삼각형 윗부분 (채워진 삼각형)
+  Paint_DrawLine(centerX, centerY - triangleHeight, centerX - circleRadius, centerY, GRAYBLUE, DOT_PIXEL_2X2, LINE_STYLE_SOLID); // 왼쪽 선
+  Paint_DrawLine(centerX, centerY - triangleHeight, centerX + circleRadius, centerY, GRAYBLUE, DOT_PIXEL_2X2, LINE_STYLE_SOLID); // 오른쪽 선
+  Paint_DrawLine(centerX - circleRadius, centerY, centerX + circleRadius, centerY, GRAYBLUE, DOT_PIXEL_2X2, LINE_STYLE_SOLID);    // 바닥 선
+
+  // 삼각형 내부 채우기
+  for (int y = 0; y < triangleHeight; y++) { // 세모를 채우기 위해 선을 반복 그리기
+    int leftX = centerX - (circleRadius * y / triangleHeight);
+    int rightX = centerX + (circleRadius * y / triangleHeight);
+    Paint_DrawLine(leftX, centerY - triangleHeight + y, rightX, centerY - triangleHeight + y, GRAYBLUE, DOT_PIXEL_2X2, LINE_STYLE_SOLID);
+  }
+
+  // 동그라미 (아랫부분)
+  Paint_DrawCircle(centerX, centerY, circleRadius, GRAYBLUE, DOT_PIXEL_2X2, DRAW_FILL_FULL);
+}
+
+void drawDrankVolume(float drankVolume_ml) {
+    Paint_Clear(WHITE); // Clear the screen
+    Paint_DrawCircle(120, 120, 117, GRAYBLUE, DOT_PIXEL_3X3, DRAW_FILL_EMPTY); // Draw a border
+
+    int drankVolumeCase = (int)(drankVolume_ml / 500); // Calculate number of drops based on 500 ml intervals
+
+    // Debug print for drank volume case
+    Serial.println(drankVolumeCase);
+
+    // Draw water drops based on drankVolumeCase
+    switch (drankVolumeCase) {
+        case 1:
+            drawWaterDrop(48, 110, 40, 18); // First drop
+            break;
+        case 2:
+            drawWaterDrop(48, 110, 40, 18); // First drop
+            drawWaterDrop(96, 110, 40, 18); // Second drop
+            break;
+        case 3:
+            drawWaterDrop(48, 110, 40, 18); // First drop
+            drawWaterDrop(96, 110, 40, 18); // Second drop
+            drawWaterDrop(144, 110, 40, 18); // Third drop
+            break;
+        case 4:
+            drawWaterDrop(48, 110, 40, 18); // First drop
+            drawWaterDrop(96, 110, 40, 18); // Second drop
+            drawWaterDrop(144, 110, 40, 18); // Third drop
+            drawWaterDrop(192, 110, 40, 18); // Fourth drop
+            break;
+        default:
+            if (drankVolumeCase > 4) {
+                drawWaterDrop(48, 110, 40, 18); // First drop
+                drawWaterDrop(96, 110, 40, 18); // Second drop
+                drawWaterDrop(144, 110, 40, 18); // Third drop
+                drawWaterDrop(192, 110, 40, 18); // Fourth drop
+            }
+            break;
+    }
+
+    // Format the drank volume as "X.XX L"
+    char volumeString[10]; // Buffer to store the formatted string
+    dtostrf(drankVolume_ml / 1000.0, 4, 1, volumeString); // Convert float to string
+    strcat(volumeString, "L");
+    Serial.print("Volume String: ");
+    Serial.println(volumeString);
+
+    // Draw the drank volume text below the drops
+    Paint_DrawString_EN(70, 159, volumeString, &Font24, WHITE, GRAYBLUE);
+    Paint_DrawString_EN(71, 160, volumeString, &Font24, WHITE, GRAYBLUE);
+    Paint_DrawString_EN(72, 161, volumeString, &Font24, WHITE, GRAYBLUE); // Display the text
+}
+
